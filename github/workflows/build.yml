@@ -1,0 +1,47 @@
+name: Construire DANAYA SERVICES DS APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Installer Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extraire le projet Android
+        run: |
+          mkdir projet
+          unzip -q *.zip -d projet
+          find projet -name settings.gradle -print
+
+      - name: Compiler le fichier APK
+        run: |
+          PROJET=$(find projet -name settings.gradle | head -n 1)
+          cd "$(dirname "$PROJET")"
+          gradle assembleDebug
+
+      - name: Publier le fichier APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Danaya-Services-DS-APK
+          path: projet/**/build/outputs/apk/debug/*.apk
